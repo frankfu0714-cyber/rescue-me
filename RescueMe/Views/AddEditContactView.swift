@@ -12,6 +12,7 @@ struct AddEditContactView: View {
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var previewImage: UIImage?
     @State private var existingPhotoFileName: String?
+    @State private var selectedAssetName: String?
 
     init(contact: Contact?, isPresented: Binding<Bool>) {
         self.contact = contact
@@ -20,6 +21,7 @@ struct AddEditContactView: View {
         self._selectedColor = State(initialValue: contact?.colorHex ?? Contact.presetColors[0])
         self._defaultAudioMode = State(initialValue: contact?.defaultAudioMode ?? .silence)
         self._existingPhotoFileName = State(initialValue: contact?.photoFileName)
+        self._selectedAssetName = State(initialValue: contact?.defaultAssetName)
     }
 
     private var isEditing: Bool { contact != nil }
@@ -28,6 +30,7 @@ struct AddEditContactView: View {
         NavigationStack {
             Form {
                 avatarSection
+                presetAvatarSection
                 infoSection
                 audioSection
             }
@@ -48,6 +51,8 @@ struct AddEditContactView: View {
                 if let data = try? await item.loadTransferable(type: Data.self),
                    let img = UIImage(data: data) {
                     previewImage = img
+                    // Custom photo overrides any preset selection
+                    selectedAssetName = nil
                 }
             }
         }
@@ -60,7 +65,7 @@ struct AddEditContactView: View {
             HStack {
                 Spacer()
                 VStack(spacing: 12) {
-                    // Avatar preview
+                    // Avatar preview — mirrors the ContactAvatarView fallback chain
                     Group {
                         if let img = previewImage {
                             Image(uiImage: img)
@@ -73,7 +78,7 @@ struct AddEditContactView: View {
                                 .resizable()
                                 .scaledToFill()
                                 .clipShape(Circle())
-                        } else if let assetName = contact?.defaultAssetName,
+                        } else if let assetName = selectedAssetName,
                                   let img = UIImage(named: assetName) {
                             Image(uiImage: img)
                                 .resizable()
@@ -96,7 +101,7 @@ struct AddEditContactView: View {
                     .frame(width: 90, height: 90)
 
                     PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                        let hasPhoto = previewImage != nil || existingPhotoFileName != nil || contact?.defaultAssetName != nil
+                        let hasPhoto = previewImage != nil || existingPhotoFileName != nil || selectedAssetName != nil
                         Text(hasPhoto ? "Change Photo" : "Add Photo")
                             .font(.system(size: 14))
                     }
@@ -106,6 +111,8 @@ struct AddEditContactView: View {
                             previewImage = nil
                             existingPhotoFileName = nil
                             selectedPhoto = nil
+                            // Restore preset asset (if contact originally had one)
+                            selectedAssetName = contact?.defaultAssetName
                         }
                         .font(.system(size: 13))
                     }
@@ -114,6 +121,57 @@ struct AddEditContactView: View {
             }
             .listRowBackground(Color.clear)
         }
+    }
+
+    @ViewBuilder
+    private var presetAvatarSection: some View {
+        let variants = Contact.assetVariants(for: contact?.defaultAssetName)
+        if !variants.isEmpty {
+            Section("Pick a look") {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 14) {
+                        ForEach(variants, id: \.self) { assetName in
+                            presetThumbnail(assetName: assetName)
+                        }
+                    }
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 2)
+                }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func presetThumbnail(assetName: String) -> some View {
+        let isSelected = selectedAssetName == assetName && previewImage == nil && existingPhotoFileName == nil
+        Button {
+            selectedAssetName = assetName
+            // Auto-clear any custom photo so the preset shows immediately
+            previewImage = nil
+            existingPhotoFileName = nil
+            selectedPhoto = nil
+        } label: {
+            Group {
+                if let img = UIImage(named: assetName) {
+                    Image(uiImage: img)
+                        .resizable()
+                        .scaledToFill()
+                        .clipShape(Circle())
+                } else {
+                    Circle().fill(Color(.systemGray4))
+                }
+            }
+            .frame(width: 52, height: 52)
+            .overlay(
+                Circle()
+                    .strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 3)
+            )
+            .shadow(color: .black.opacity(isSelected ? 0.18 : 0.06), radius: isSelected ? 4 : 2, y: 1)
+        }
+        .buttonStyle(.plain)
+        .animation(.easeInOut(duration: 0.15), value: isSelected)
     }
 
     private var infoSection: some View {
@@ -173,7 +231,6 @@ struct AddEditContactView: View {
         // Handle photo persistence
         var photoFileName: String? = existingPhotoFileName
         if let img = previewImage {
-            // Delete old photo if swapping
             if let old = existingPhotoFileName { Contact.deletePhoto(filename: old) }
             photoFileName = Contact.savePhoto(img)
         } else if existingPhotoFileName == nil {
@@ -185,6 +242,7 @@ struct AddEditContactView: View {
             existing.colorHex = selectedColor
             existing.defaultAudioMode = defaultAudioMode
             existing.photoFileName = photoFileName
+            existing.defaultAssetName = selectedAssetName
             appState.updateContact(existing)
         } else {
             let newContact = Contact(

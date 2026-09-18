@@ -21,6 +21,19 @@ struct Contact: Identifiable, Codable, Equatable {
         return result.isEmpty ? String(name.prefix(1)).uppercased() : result
     }
 
+    /// Returns all ethnic variant asset names for the given asset (e.g. "avatar-mom-asian"
+    /// → ["avatar-mom-asian", "avatar-mom-black", "avatar-mom-latino", "avatar-mom-white"]).
+    /// Returns empty when the asset has no variants (e.g. "avatar-unknown-shared").
+    static func assetVariants(for assetName: String?) -> [String] {
+        guard let assetName else { return [] }
+        let ethnicities = ["asian", "black", "latino", "white"]
+        for e in ethnicities where assetName.hasSuffix("-\(e)") {
+            let base = String(assetName.dropLast(e.count + 1))
+            return ethnicities.map { "\(base)-\($0)" }
+        }
+        return []
+    }
+
     func loadPhoto() -> UIImage? {
         guard let filename = photoFileName else { return nil }
         let url = Contact.photoDirectory.appendingPathComponent(filename)
@@ -54,11 +67,11 @@ struct Contact: Identifiable, Codable, Equatable {
     ]
 
     static let defaults: [Contact] = [
-        Contact(name: "Mom",               colorHex: "#FF6B9D", emoji: "👩",    defaultAssetName: "avatar-mom"),
-        Contact(name: "Dad",               colorHex: "#4A90E2", emoji: "👨",    defaultAssetName: "avatar-dad"),
-        Contact(name: "Boss",              colorHex: "#5C5C8A", emoji: "👨‍💼",  defaultAssetName: "avatar-boss"),
-        Contact(name: "Dr. Chen",          colorHex: "#26A69A", emoji: "👨‍⚕️", defaultAssetName: "avatar-dr-chen"),
-        Contact(name: "Emergency Contact", colorHex: "#EF5350", emoji: "🚨",   defaultAssetName: "avatar-emergency"),
-        Contact(name: "Unknown Number",    colorHex: "#78909C", emoji: "❓",    defaultAssetName: "avatar-unknown"),
+        Contact(name: "Mom",               colorHex: "#FF6B9D", emoji: "👩",    defaultAssetName: "avatar-mom-asian"),
+        Contact(name: "Dad",               colorHex: "#4A90E2", emoji: "👨",    defaultAssetName: "avatar-dad-black"),
+        Contact(name: "Boss",              colorHex: "#5C5C8A", emoji: "👨‍💼",  defaultAssetName: "avatar-boss-white"),
+        Contact(name: "Dr. Chen",          colorHex: "#26A69A", emoji: "👨‍⚕️", defaultAssetName: "avatar-dr-chen-asian"),
+        Contact(name: "Emergency Contact", colorHex: "#EF5350", emoji: "🚨",   defaultAssetName: "avatar-emergency-latino"),
+        Contact(name: "Unknown Number",    colorHex: "#78909C", emoji: "❓",    defaultAssetName: "avatar-unknown-shared"),
     ]
 }
