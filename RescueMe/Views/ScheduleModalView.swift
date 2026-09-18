@@ -150,9 +150,14 @@ struct ContactAvatarView: View {
             } else {
                 ZStack {
                     Circle().fill(Color(hex: contact.colorHex))
-                    Text(contact.initials)
-                        .font(.system(size: size * 0.38, weight: .semibold))
-                        .foregroundStyle(.white)
+                    if let emoji = contact.emoji {
+                        Text(emoji)
+                            .font(.system(size: size * 0.55))
+                    } else {
+                        Text(contact.initials)
+                            .font(.system(size: size * 0.38, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
                 }
             }
         }

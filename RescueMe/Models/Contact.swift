@@ -7,6 +7,9 @@ struct Contact: Identifiable, Codable, Equatable {
     var colorHex: String
     var defaultAudioMode: AudioMode = .silence
     var photoFileName: String?
+    /// Preset emoji rendered large over the color circle — seeded contacts only.
+    /// Nil for user-added contacts, which fall back to initials.
+    var emoji: String?
 
     var initials: String {
         let parts = name.split(separator: " ")
@@ -48,11 +51,11 @@ struct Contact: Identifiable, Codable, Equatable {
     ]
 
     static let defaults: [Contact] = [
-        Contact(name: "Mom",              colorHex: "#FF6B9D"),
-        Contact(name: "Dad",              colorHex: "#4A90E2"),
-        Contact(name: "Boss",             colorHex: "#7B68EE"),
-        Contact(name: "Dr. Chen",         colorHex: "#26A69A"),
-        Contact(name: "Emergency Contact",colorHex: "#EF5350"),
-        Contact(name: "Unknown Number",   colorHex: "#78909C"),
+        Contact(name: "Mom",               colorHex: "#FF6B9D", emoji: "👩"),
+        Contact(name: "Dad",               colorHex: "#4A90E2", emoji: "👨"),
+        Contact(name: "Boss",              colorHex: "#5C5C8A", emoji: "👨‍💼"),
+        Contact(name: "Dr. Chen",          colorHex: "#26A69A", emoji: "👨‍⚕️"),
+        Contact(name: "Emergency Contact", colorHex: "#EF5350", emoji: "🚨"),
+        Contact(name: "Unknown Number",    colorHex: "#78909C", emoji: "❓"),
     ]
 }

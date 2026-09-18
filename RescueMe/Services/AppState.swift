@@ -33,7 +33,7 @@ final class AppState {
 
     private var countdownTimer: Timer?
     private var missedCallTimer: Timer?
-    private let storageKey = "rescueme.contacts.v1"
+    private let storageKey = "rescueme.contacts.v2"
 
     private init() {
         loadContacts()

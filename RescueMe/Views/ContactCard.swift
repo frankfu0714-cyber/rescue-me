@@ -41,9 +41,14 @@ struct ContactCard: View {
         } else {
             ZStack {
                 Circle().fill(Color(hex: contact.colorHex))
-                Text(contact.initials)
-                    .font(.system(size: 26, weight: .semibold))
-                    .foregroundStyle(.white)
+                if let emoji = contact.emoji {
+                    Text(emoji)
+                        .font(.system(size: 38))
+                } else {
+                    Text(contact.initials)
+                        .font(.system(size: 26, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
             }
         }
     }
