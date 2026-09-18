@@ -1,0 +1,409 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		187DC972B0AE7D3746C44E0B /* FakeInCallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1DA04CEB7711334D22A7662 /* FakeInCallView.swift */; };
+		1E871706A8D9E7398D200BC1 /* CallKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656FC522BC7B6AD8E283874F /* CallKitService.swift */; };
+		26AA1F1FB270D4C122302E0D /* ContactCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA869771CEB95F94A11E664E /* ContactCard.swift */; };
+		2B968570D3B49DA1EDB14007 /* AddEditContactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BAFCD9D2E492EC1216519E0 /* AddEditContactView.swift */; };
+		394C810CDADDA2E502155D4F /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55E1F4951236CF37CEE24483 /* Contact.swift */; };
+		3BDEE7D3A5183CD6EC7F61A1 /* HapticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B59B80FBA8FC27E297E5B6D /* HapticsService.swift */; };
+		3DA7D17447CBFB0EBD22EBEA /* ScheduleModalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F0BE99EC2B31B6A5D63A3F8 /* ScheduleModalView.swift */; };
+		4A6F05D8DF8D7711AC05B335 /* ContactsGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4C02F8858AE9B5ED8123ADF /* ContactsGridView.swift */; };
+		5F2BD6EA4AA00491A567B7F3 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2B191ED72BABAF3197D9385 /* ContentView.swift */; };
+		6C774D2B06B1E3309C2C0D2C /* AudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA22B5BDF9506A51101C6BA /* AudioService.swift */; };
+		A1FD088B68C0410BAB85191A /* FakeIncomingCallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C0F537BC3385454787F373 /* FakeIncomingCallView.swift */; };
+		B3D0559D750D6539184B1900 /* RescueMeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2E42EA99B2A6414353B7CE1 /* RescueMeApp.swift */; };
+		BC3DA1D08654C8C52B678667 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EF1FC75EBEE0C6C313A2C8B6 /* Assets.xcassets */; };
+		BCD360302F9A421471E2240E /* AudioMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89C1DDDAF7137D9015AFCAE6 /* AudioMode.swift */; };
+		C6F1863E9F6E6C84BDBCBBD6 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C05639CC494FEEA44F0FAAB /* SettingsView.swift */; };
+		D485D609BA1D0375B66004CE /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC7A868B027C9701D1F3A33E /* NotificationService.swift */; };
+		E0136529445C79965587B4F3 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58973C394688F029114FF603 /* Theme.swift */; };
+		ECEA011845351EEE733290BD /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFE3D326EDC3A5284CFEF15A /* AppState.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0F0BE99EC2B31B6A5D63A3F8 /* ScheduleModalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleModalView.swift; sourceTree = "<group>"; };
+		2B59B80FBA8FC27E297E5B6D /* HapticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticsService.swift; sourceTree = "<group>"; };
+		2BA22B5BDF9506A51101C6BA /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioService.swift; sourceTree = "<group>"; };
+		2C05639CC494FEEA44F0FAAB /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		55E1F4951236CF37CEE24483 /* Contact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contact.swift; sourceTree = "<group>"; };
+		58973C394688F029114FF603 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		5BAFCD9D2E492EC1216519E0 /* AddEditContactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEditContactView.swift; sourceTree = "<group>"; };
+		6170A4A2A5F1743D19BAC3C8 /* RescueMe.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = RescueMe.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		656FC522BC7B6AD8E283874F /* CallKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKitService.swift; sourceTree = "<group>"; };
+		6839D8920D0F0C6ECCA0357C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		72C0F537BC3385454787F373 /* FakeIncomingCallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeIncomingCallView.swift; sourceTree = "<group>"; };
+		89C1DDDAF7137D9015AFCAE6 /* AudioMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioMode.swift; sourceTree = "<group>"; };
+		AC7A868B027C9701D1F3A33E /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		AFE3D326EDC3A5284CFEF15A /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		B2B191ED72BABAF3197D9385 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		B4C02F8858AE9B5ED8123ADF /* ContactsGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsGridView.swift; sourceTree = "<group>"; };
+		D1DA04CEB7711334D22A7662 /* FakeInCallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeInCallView.swift; sourceTree = "<group>"; };
+		EA869771CEB95F94A11E664E /* ContactCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactCard.swift; sourceTree = "<group>"; };
+		EF1FC75EBEE0C6C313A2C8B6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F2E42EA99B2A6414353B7CE1 /* RescueMeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RescueMeApp.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		01E6D747E0890B3E416552C1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6170A4A2A5F1743D19BAC3C8 /* RescueMe.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		18FB12FB38D60A3D492027F9 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				5BAFCD9D2E492EC1216519E0 /* AddEditContactView.swift */,
+				EA869771CEB95F94A11E664E /* ContactCard.swift */,
+				B4C02F8858AE9B5ED8123ADF /* ContactsGridView.swift */,
+				D1DA04CEB7711334D22A7662 /* FakeInCallView.swift */,
+				72C0F537BC3385454787F373 /* FakeIncomingCallView.swift */,
+				0F0BE99EC2B31B6A5D63A3F8 /* ScheduleModalView.swift */,
+				2C05639CC494FEEA44F0FAAB /* SettingsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		204FE81ECFECEB2D66D893A9 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				89C1DDDAF7137D9015AFCAE6 /* AudioMode.swift */,
+				55E1F4951236CF37CEE24483 /* Contact.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		6FA225DA1DF8FD22FF0F1AD1 = {
+			isa = PBXGroup;
+			children = (
+				86E8C7E6B4371F238FCCF7B9 /* RescueMe */,
+				01E6D747E0890B3E416552C1 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		780AB4262519FCAFDA6D1BBA /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				AFE3D326EDC3A5284CFEF15A /* AppState.swift */,
+				2BA22B5BDF9506A51101C6BA /* AudioService.swift */,
+				656FC522BC7B6AD8E283874F /* CallKitService.swift */,
+				2B59B80FBA8FC27E297E5B6D /* HapticsService.swift */,
+				AC7A868B027C9701D1F3A33E /* NotificationService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		86E8C7E6B4371F238FCCF7B9 /* RescueMe */ = {
+			isa = PBXGroup;
+			children = (
+				EF1FC75EBEE0C6C313A2C8B6 /* Assets.xcassets */,
+				B2B191ED72BABAF3197D9385 /* ContentView.swift */,
+				6839D8920D0F0C6ECCA0357C /* Info.plist */,
+				F2E42EA99B2A6414353B7CE1 /* RescueMeApp.swift */,
+				58973C394688F029114FF603 /* Theme.swift */,
+				204FE81ECFECEB2D66D893A9 /* Models */,
+				780AB4262519FCAFDA6D1BBA /* Services */,
+				18FB12FB38D60A3D492027F9 /* Views */,
+			);
+			path = RescueMe;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		27A3098589601B2CAFA1DC5A /* RescueMe */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E80D6A60AAADC32C23065D2E /* Build configuration list for PBXNativeTarget "RescueMe" */;
+			buildPhases = (
+				0B179C238355259B8C6E590D /* Sources */,
+				9BC42B2D7547167CAE0A9233 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = RescueMe;
+			packageProductDependencies = (
+			);
+			productName = RescueMe;
+			productReference = 6170A4A2A5F1743D19BAC3C8 /* RescueMe.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		5CCD8DA22B28649C3149483A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					27A3098589601B2CAFA1DC5A = {
+						DevelopmentTeam = 632H46CT74;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = E3E71E88030B25689FC24BC0 /* Build configuration list for PBXProject "RescueMe" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 6FA225DA1DF8FD22FF0F1AD1;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 01E6D747E0890B3E416552C1 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				27A3098589601B2CAFA1DC5A /* RescueMe */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		9BC42B2D7547167CAE0A9233 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BC3DA1D08654C8C52B678667 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0B179C238355259B8C6E590D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2B968570D3B49DA1EDB14007 /* AddEditContactView.swift in Sources */,
+				ECEA011845351EEE733290BD /* AppState.swift in Sources */,
+				BCD360302F9A421471E2240E /* AudioMode.swift in Sources */,
+				6C774D2B06B1E3309C2C0D2C /* AudioService.swift in Sources */,
+				1E871706A8D9E7398D200BC1 /* CallKitService.swift in Sources */,
+				394C810CDADDA2E502155D4F /* Contact.swift in Sources */,
+				26AA1F1FB270D4C122302E0D /* ContactCard.swift in Sources */,
+				4A6F05D8DF8D7711AC05B335 /* ContactsGridView.swift in Sources */,
+				5F2BD6EA4AA00491A567B7F3 /* ContentView.swift in Sources */,
+				187DC972B0AE7D3746C44E0B /* FakeInCallView.swift in Sources */,
+				A1FD088B68C0410BAB85191A /* FakeIncomingCallView.swift in Sources */,
+				3BDEE7D3A5183CD6EC7F61A1 /* HapticsService.swift in Sources */,
+				D485D609BA1D0375B66004CE /* NotificationService.swift in Sources */,
+				B3D0559D750D6539184B1900 /* RescueMeApp.swift in Sources */,
+				3DA7D17447CBFB0EBD22EBEA /* ScheduleModalView.swift in Sources */,
+				C6F1863E9F6E6C84BDBCBBD6 /* SettingsView.swift in Sources */,
+				E0136529445C79965587B4F3 /* Theme.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		0984A3CFEA5D866EFAE70ED8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 632H46CT74;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.10;
+			};
+			name = Release;
+		};
+		0CB79C0FD770458EE30156F5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = RescueMe/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.frankfu.rescueme;
+				PRODUCT_NAME = RescueMe;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		61503E9F120EEE2D2DAE7981 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = RescueMe/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.frankfu.rescueme;
+				PRODUCT_NAME = RescueMe;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		7C74B38786FCAB57B7598F2E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 632H46CT74;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.10;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E3E71E88030B25689FC24BC0 /* Build configuration list for PBXProject "RescueMe" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7C74B38786FCAB57B7598F2E /* Debug */,
+				0984A3CFEA5D866EFAE70ED8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E80D6A60AAADC32C23065D2E /* Build configuration list for PBXNativeTarget "RescueMe" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0CB79C0FD770458EE30156F5 /* Debug */,
+				61503E9F120EEE2D2DAE7981 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 5CCD8DA22B28649C3149483A /* Project object */;
+}

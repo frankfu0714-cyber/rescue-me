@@ -1,0 +1,58 @@
+import Foundation
+import UIKit
+
+struct Contact: Identifiable, Codable, Equatable {
+    var id: UUID = UUID()
+    var name: String
+    var colorHex: String
+    var defaultAudioMode: AudioMode = .silence
+    var photoFileName: String?
+
+    var initials: String {
+        let parts = name.split(separator: " ")
+        let letters = parts.prefix(2).compactMap { $0.first.map(String.init) }
+        let result = letters.joined().uppercased()
+        return result.isEmpty ? String(name.prefix(1)).uppercased() : result
+    }
+
+    func loadPhoto() -> UIImage? {
+        guard let filename = photoFileName else { return nil }
+        let url = Contact.photoDirectory.appendingPathComponent(filename)
+        guard let data = try? Data(contentsOf: url) else { return nil }
+        return UIImage(data: data)
+    }
+
+    static var photoDirectory: URL {
+        FileManager.default
+            .urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("ContactPhotos", isDirectory: true)
+    }
+
+    static func savePhoto(_ image: UIImage) -> String? {
+        guard let data = image.jpegData(compressionQuality: 0.7) else { return nil }
+        let filename = UUID().uuidString + ".jpg"
+        try? FileManager.default.createDirectory(at: photoDirectory, withIntermediateDirectories: true)
+        try? data.write(to: photoDirectory.appendingPathComponent(filename))
+        return filename
+    }
+
+    static func deletePhoto(filename: String) {
+        let url = photoDirectory.appendingPathComponent(filename)
+        try? FileManager.default.removeItem(at: url)
+    }
+
+    static let presetColors: [String] = [
+        "#FF6B9D", "#4A90E2", "#7B68EE", "#26A69A",
+        "#EF5350", "#78909C", "#FF8A65", "#66BB6A",
+        "#FFA726", "#AB47BC",
+    ]
+
+    static let defaults: [Contact] = [
+        Contact(name: "Mom",              colorHex: "#FF6B9D"),
+        Contact(name: "Dad",              colorHex: "#4A90E2"),
+        Contact(name: "Boss",             colorHex: "#7B68EE"),
+        Contact(name: "Dr. Chen",         colorHex: "#26A69A"),
+        Contact(name: "Emergency Contact",colorHex: "#EF5350"),
+        Contact(name: "Unknown Number",   colorHex: "#78909C"),
+    ]
+}
