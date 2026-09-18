@@ -178,11 +178,20 @@ struct ContactAvatarView: View {
     var body: some View {
         Group {
             if let photo {
+                // Tier 1: user-set photo
                 Image(uiImage: photo)
                     .resizable()
                     .scaledToFill()
                     .clipShape(Circle())
+            } else if let assetName = contact.defaultAssetName,
+                      let assetImage = UIImage(named: assetName) {
+                // Tier 2: bundled default asset (seeded contacts)
+                Image(uiImage: assetImage)
+                    .resizable()
+                    .scaledToFill()
+                    .clipShape(Circle())
             } else {
+                // Tier 3: color circle + emoji or initials
                 ZStack {
                     Circle().fill(Color(hex: contact.colorHex))
                     if let emoji = contact.emoji {

@@ -38,6 +38,12 @@ struct ContactCard: View {
                 .resizable()
                 .scaledToFill()
                 .clipShape(Circle())
+        } else if let assetName = contact.defaultAssetName,
+                  let assetImage = UIImage(named: assetName) {
+            Image(uiImage: assetImage)
+                .resizable()
+                .scaledToFill()
+                .clipShape(Circle())
         } else {
             ZStack {
                 Circle().fill(Color(hex: contact.colorHex))

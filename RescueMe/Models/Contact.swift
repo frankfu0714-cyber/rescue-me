@@ -10,6 +10,9 @@ struct Contact: Identifiable, Codable, Equatable {
     /// Preset emoji rendered large over the color circle — seeded contacts only.
     /// Nil for user-added contacts, which fall back to initials.
     var emoji: String?
+    /// Name of an xcassets image set used as the default avatar — seeded contacts only.
+    /// Falls back to emoji, then initials when nil.
+    var defaultAssetName: String?
 
     var initials: String {
         let parts = name.split(separator: " ")
@@ -51,11 +54,11 @@ struct Contact: Identifiable, Codable, Equatable {
     ]
 
     static let defaults: [Contact] = [
-        Contact(name: "Mom",               colorHex: "#FF6B9D", emoji: "👩"),
-        Contact(name: "Dad",               colorHex: "#4A90E2", emoji: "👨"),
-        Contact(name: "Boss",              colorHex: "#5C5C8A", emoji: "👨‍💼"),
-        Contact(name: "Dr. Chen",          colorHex: "#26A69A", emoji: "👨‍⚕️"),
-        Contact(name: "Emergency Contact", colorHex: "#EF5350", emoji: "🚨"),
-        Contact(name: "Unknown Number",    colorHex: "#78909C", emoji: "❓"),
+        Contact(name: "Mom",               colorHex: "#FF6B9D", emoji: "👩",    defaultAssetName: "avatar-mom"),
+        Contact(name: "Dad",               colorHex: "#4A90E2", emoji: "👨",    defaultAssetName: "avatar-dad"),
+        Contact(name: "Boss",              colorHex: "#5C5C8A", emoji: "👨‍💼",  defaultAssetName: "avatar-boss"),
+        Contact(name: "Dr. Chen",          colorHex: "#26A69A", emoji: "👨‍⚕️", defaultAssetName: "avatar-dr-chen"),
+        Contact(name: "Emergency Contact", colorHex: "#EF5350", emoji: "🚨",   defaultAssetName: "avatar-emergency"),
+        Contact(name: "Unknown Number",    colorHex: "#78909C", emoji: "❓",    defaultAssetName: "avatar-unknown"),
     ]
 }

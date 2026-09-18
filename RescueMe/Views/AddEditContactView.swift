@@ -73,6 +73,12 @@ struct AddEditContactView: View {
                                 .resizable()
                                 .scaledToFill()
                                 .clipShape(Circle())
+                        } else if let assetName = contact?.defaultAssetName,
+                                  let img = UIImage(named: assetName) {
+                            Image(uiImage: img)
+                                .resizable()
+                                .scaledToFill()
+                                .clipShape(Circle())
                         } else {
                             ZStack {
                                 Circle().fill(Color(hex: selectedColor))
@@ -90,7 +96,8 @@ struct AddEditContactView: View {
                     .frame(width: 90, height: 90)
 
                     PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                        Text(previewImage != nil || existingPhotoFileName != nil ? "Change Photo" : "Add Photo")
+                        let hasPhoto = previewImage != nil || existingPhotoFileName != nil || contact?.defaultAssetName != nil
+                        Text(hasPhoto ? "Change Photo" : "Add Photo")
                             .font(.system(size: 14))
                     }
 
