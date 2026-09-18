@@ -76,9 +76,14 @@ struct AddEditContactView: View {
                         } else {
                             ZStack {
                                 Circle().fill(Color(hex: selectedColor))
-                                Text(initials)
-                                    .font(.system(size: 36, weight: .semibold))
-                                    .foregroundStyle(.white)
+                                if let emoji = contact?.emoji {
+                                    Text(emoji)
+                                        .font(.system(size: 50))
+                                } else {
+                                    Text(initials)
+                                        .font(.system(size: 36, weight: .semibold))
+                                        .foregroundStyle(.white)
+                                }
                             }
                         }
                     }

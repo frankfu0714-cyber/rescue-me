@@ -1,6 +1,9 @@
 import SwiftUI
+import PhotosUI
 
 struct ScheduleModalView: View {
+    /// Original contact passed in — used only for the ID and initial audio mode.
+    /// All rendering uses `liveContact` so it reflects any photo saved in this session.
     let contact: Contact
     @Binding var isPresented: Bool
     @Environment(AppState.self) private var appState
@@ -8,6 +11,13 @@ struct ScheduleModalView: View {
     @State private var selectedPreset: Preset = .thirtySeconds
     @State private var customMinutes: Int = 5
     @State private var audioMode: AudioMode
+    @State private var avatarPickerItem: PhotosPickerItem?
+
+    /// Always the freshest copy from appState so the avatar updates the moment
+    /// a photo is saved (without needing to dismiss and reopen the sheet).
+    private var liveContact: Contact {
+        appState.contacts.first(where: { $0.id == contact.id }) ?? contact
+    }
 
     init(contact: Contact, isPresented: Binding<Bool>) {
         self.contact = contact
@@ -57,7 +67,7 @@ struct ScheduleModalView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Rescue Me!") {
                         appState.scheduleCall(
-                            contact: contact,
+                            contact: liveContact,
                             delay: effectiveDelay,
                             audioMode: audioMode
                         )
@@ -67,6 +77,20 @@ struct ScheduleModalView: View {
                     .tint(Theme.accent)
                 }
             }
+            // Handle photo picked from the avatar tap
+            .task(id: avatarPickerItem) {
+                guard let item = avatarPickerItem else { return }
+                avatarPickerItem = nil      // reset immediately so re-tapping works
+                guard
+                    let data = try? await item.loadTransferable(type: Data.self),
+                    let img = UIImage(data: data)
+                else { return }
+                // Fetch the freshest copy of the contact before mutating
+                var updated = appState.contacts.first(where: { $0.id == contact.id }) ?? contact
+                if let old = updated.photoFileName { Contact.deletePhoto(filename: old) }
+                updated.photoFileName = Contact.savePhoto(img)
+                appState.updateContact(updated)
+            }
         }
     }
 
@@ -75,9 +99,20 @@ struct ScheduleModalView: View {
     private var callerSection: some View {
         Section {
             HStack(spacing: 14) {
-                ContactAvatarView(contact: contact, size: 52)
+                // Tapping the avatar opens the photo picker inline
+                PhotosPicker(selection: $avatarPickerItem, matching: .images) {
+                    ContactAvatarView(contact: liveContact, size: 52)
+                        .overlay(alignment: .bottomTrailing) {
+                            Image(systemName: "camera.circle.fill")
+                                .font(.system(size: 16))
+                                .foregroundStyle(.white, Theme.accent)
+                                .offset(x: 3, y: 3)
+                        }
+                }
+                .buttonStyle(.plain)
+
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(contact.name)
+                    Text(liveContact.name)
                         .font(.system(size: 17, weight: .semibold))
                     Text("will call in…")
                         .font(.system(size: 14))
