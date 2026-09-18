@@ -2,9 +2,11 @@ import SwiftUI
 
 struct ContactsGridView: View {
     @Environment(AppState.self) private var appState
-    @State private var selectedContact: Contact?
-    @State private var showScheduleModal = false
-    @State private var showAddContact = false
+
+    // Three independent sheet triggers — never share state between them.
+    @State private var schedulingContact: Contact?   // → ScheduleModalView
+    @State private var editingContact: Contact?      // → AddEditContactView (edit)
+    @State private var showNewContact = false         // → AddEditContactView (new)
 
     private let columns = [GridItem(.adaptive(minimum: 150, maximum: 200), spacing: 16)]
 
@@ -15,13 +17,11 @@ struct ContactsGridView: View {
                     LazyVGrid(columns: columns, spacing: 16) {
                         ForEach(appState.contacts) { contact in
                             ContactCard(contact: contact) {
-                                selectedContact = contact
-                                showScheduleModal = true
+                                schedulingContact = contact
                             }
                             .contextMenu {
                                 Button {
-                                    selectedContact = contact
-                                    showAddContact = true
+                                    editingContact = contact
                                 } label: { Label("Edit", systemImage: "pencil") }
 
                                 Button(role: .destructive) {
@@ -50,28 +50,34 @@ struct ContactsGridView: View {
             .navigationTitle("Rescue Me")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button { showAddContact = true } label: {
+                    Button { showNewContact = true } label: {
                         Image(systemName: "plus")
                     }
                 }
             }
-            .sheet(isPresented: $showScheduleModal) {
-                if let contact = selectedContact {
-                    ScheduleModalView(contact: contact, isPresented: $showScheduleModal)
-                }
+            // Schedule sheet — keyed on the contact identity
+            .sheet(item: $schedulingContact) { contact in
+                ScheduleModalView(contact: contact, isPresented: .init(
+                    get: { schedulingContact != nil },
+                    set: { if !$0 { schedulingContact = nil } }
+                ))
             }
-            .sheet(isPresented: $showAddContact) {
-                AddEditContactView(
-                    contact: selectedContact,
-                    isPresented: $showAddContact
-                )
-                .onDisappear { selectedContact = nil }
+            // Edit sheet — keyed on the contact identity
+            .sheet(item: $editingContact) { contact in
+                AddEditContactView(contact: contact, isPresented: .init(
+                    get: { editingContact != nil },
+                    set: { if !$0 { editingContact = nil } }
+                ))
+            }
+            // New-contact sheet — keyed on a bool
+            .sheet(isPresented: $showNewContact) {
+                AddEditContactView(contact: nil, isPresented: $showNewContact)
             }
         }
     }
 
     private var addButton: some View {
-        Button { showAddContact = true } label: {
+        Button { showNewContact = true } label: {
             VStack(spacing: 10) {
                 ZStack {
                     Circle()

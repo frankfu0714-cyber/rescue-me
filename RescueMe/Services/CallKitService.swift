@@ -75,7 +75,16 @@ extension CallKitService: CXProviderDelegate {
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         action.fulfill()
-        onDecline?()
+        // Do NOT call onDecline() here. CallKit fires this action both when the
+        // user explicitly declines on the lock-screen AND when its internal ring
+        // timeout expires (~30 s on device, much sooner in Simulator). We cannot
+        // distinguish the two cases. AppState.missedCallTimer (45 s) handles
+        // auto-dismiss; the user's own Decline button calls endCall() directly.
+        //
+        // Side-effect: tapping "Decline" on the native lock-screen UI will
+        // dismiss the system call UI but our FakeIncomingCallView stays visible
+        // until the user taps Decline there or the 45 s timer fires.
+        // Acceptable trade-off for the prototype.
     }
 
     func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {

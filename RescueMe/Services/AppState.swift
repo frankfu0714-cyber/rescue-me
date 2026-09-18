@@ -32,6 +32,7 @@ final class AppState {
     // MARK: - Private
 
     private var countdownTimer: Timer?
+    private var missedCallTimer: Timer?
     private let storageKey = "rescueme.contacts.v1"
 
     private init() {
@@ -117,13 +118,22 @@ final class AppState {
     func triggerCall() {
         guard let contact = currentContact else { return }
 
-        // PRIMARY: report to CallKit so lock-screen shows system call UI
+        // PRIMARY: report to CallKit so lock-screen shows system call UI.
+        // Note: CallKit fires CXEndCallAction internally after ~30 s on device /
+        // much sooner in the Simulator. We do NOT wire that action to endCall()
+        // — instead our missedCallTimer (45 s) is the sole auto-dismiss path.
         CallKitService.shared.reportIncomingCall(from: contact.name)
 
         // Show our custom UI (for foreground / unlocked case)
         callPhase = .ringing
         AudioService.shared.playRingtone()
         if vibrationEnabled { HapticsService.shared.startCallVibration() }
+
+        // Missed-call fallback: auto-dismiss after 45 s if user doesn't act
+        missedCallTimer?.invalidate()
+        missedCallTimer = Timer.scheduledTimer(withTimeInterval: 45, repeats: false) { [weak self] _ in
+            self?.endCall()
+        }
     }
 
     func triggerCallFromNotification(contactId: UUID, audioModeRaw: String) {
@@ -135,6 +145,8 @@ final class AppState {
     }
 
     func answerCall() {
+        missedCallTimer?.invalidate()
+        missedCallTimer = nil
         AudioService.shared.stopRingtone()
         HapticsService.shared.stopCallVibration()
         AudioService.shared.startCallAudio(mode: currentAudioMode)
@@ -142,6 +154,8 @@ final class AppState {
     }
 
     func endCall() {
+        missedCallTimer?.invalidate()
+        missedCallTimer = nil
         CallKitService.shared.endActiveCall()
         AudioService.shared.stopAll()
         HapticsService.shared.stopCallVibration()
