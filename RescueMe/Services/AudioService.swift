@@ -3,9 +3,17 @@ import AVFoundation
 final class AudioService {
     static let shared = AudioService()
 
+    // PCM engine — used for ringtone, mumble, ambient
     private var engine = AVAudioEngine()
     private var playerNode = AVAudioPlayerNode()
     private var callKitOwnsSession = false
+
+    // AVAudioPlayer stack — used for realisticMom (sequenced MP3 clips)
+    private var ambientPlayer: AVAudioPlayer?
+    private var voicePlayer: AVAudioPlayer?
+    private var voiceSequenceTask: Task<Void, Never>?
+    private var shuffledClipIndices: [Int] = []
+    private var nextClipCursor = 0
 
     private init() {
         configureSession()
@@ -28,7 +36,6 @@ final class AudioService {
 
     func callKitActivated() {
         callKitOwnsSession = true
-        // Re-activate engine if needed when CallKit hands back audio
         if engine.isRunning { return }
         try? engine.start()
     }
@@ -53,18 +60,70 @@ final class AudioService {
 
     func startCallAudio(mode: AudioMode) {
         stopAll()
-        guard mode != .silence else { return }
-        startEngine(buffer: makeNoiseBuffer(mode: mode))
+        switch mode {
+        case .silence:
+            break
+        case .mumble, .ambient:
+            startEngine(buffer: makeNoiseBuffer(mode: mode))
+        case .realisticMom:
+            startRealisticMom()
+        }
     }
 
     // MARK: - Stop
 
     func stopAll() {
+        voiceSequenceTask?.cancel()
+        voiceSequenceTask = nil
+        voicePlayer?.stop()
+        voicePlayer = nil
+        ambientPlayer?.stop()
+        ambientPlayer = nil
         playerNode.stop()
         engine.stop()
     }
 
-    // MARK: - Engine
+    // MARK: - Realistic Mom
+
+    private func startRealisticMom() {
+        // Each mixed clip already contains ambient bed + voice + tail silence,
+        // so we play them back-to-back in shuffled order with a short gap between clips.
+        shuffledClipIndices = (1...5).shuffled()
+        nextClipCursor = 0
+
+        voiceSequenceTask = Task { [weak self] in
+            guard let self else { return }
+            while !Task.isCancelled {
+                let clipIndex = self.shuffledClipIndices[self.nextClipCursor]
+                self.nextClipCursor = (self.nextClipCursor + 1) % self.shuffledClipIndices.count
+                // Re-shuffle once we exhaust the deck
+                if self.nextClipCursor == 0 {
+                    self.shuffledClipIndices = (1...5).shuffled()
+                }
+
+                let name = String(format: "mom_%02d", clipIndex)
+                guard let url = Bundle.main.url(forResource: name, withExtension: "mp3") else {
+                    try? await Task.sleep(nanoseconds: 3_000_000_000)
+                    continue
+                }
+
+                guard let player = try? AVAudioPlayer(contentsOf: url) else { continue }
+                player.volume = 1.0
+                player.prepareToPlay()
+
+                await MainActor.run { self.voicePlayer = player }
+                player.play()
+
+                // Wait for the clip to finish (duration is baked into the file)
+                let waitNs = UInt64(max(0, player.duration - 0.1) * 1_000_000_000)
+                try? await Task.sleep(nanoseconds: waitNs)
+
+                if Task.isCancelled { break }
+            }
+        }
+    }
+
+    // MARK: - PCM Engine
 
     private func startEngine(buffer: AVAudioPCMBuffer?) {
         guard let buffer else { return }
@@ -81,19 +140,14 @@ final class AudioService {
             return
         }
 
-        scheduleLooping(buffer)
-        playerNode.play()
-    }
-
-    private func scheduleLooping(_ buffer: AVAudioPCMBuffer) {
         playerNode.scheduleBuffer(buffer, at: nil, options: .loops)
+        playerNode.play()
     }
 
     // MARK: - Buffer Generators
 
     private func makeRingtoneBuffer() -> AVAudioPCMBuffer? {
         let sampleRate: Double = 44100
-        // Ring pattern: 2s tone + 4s silence (loops)
         let ringDuration: Double = 2.0
         let silenceDuration: Double = 4.0
         let totalFrames = AVAudioFrameCount(sampleRate * (ringDuration + silenceDuration))
@@ -109,9 +163,7 @@ final class AudioService {
             for i in 0..<Int(totalFrames) {
                 if i < ringFrames {
                     let t = Double(i) / sampleRate
-                    // Classic North American ring: 440 Hz + 480 Hz dual-tone
                     let tone = sin(2 * .pi * 440 * t) + sin(2 * .pi * 480 * t)
-                    // Soft attack/release envelope
                     let env: Double
                     if t < 0.05 { env = t / 0.05 }
                     else if t > ringDuration - 0.08 { env = (ringDuration - t) / 0.08 }
@@ -137,7 +189,6 @@ final class AudioService {
 
         switch mode {
         case .mumble:
-            // Pink noise via Kellett approximation — sounds like a distant muffled voice
             var b0: Float = 0, b1: Float = 0, b2: Float = 0
             var b3: Float = 0, b4: Float = 0, b5: Float = 0, b6: Float = 0
             for i in 0..<Int(frameCount) {
@@ -153,14 +204,13 @@ final class AudioService {
                 data[i] = pink * 0.12
             }
         case .ambient:
-            // Soft filtered white noise — coffee-shop / office feel
             var prev: Float = 0
             for i in 0..<Int(frameCount) {
                 let w = Float.random(in: -1...1)
-                prev = prev * 0.95 + w * 0.05   // low-pass
+                prev = prev * 0.95 + w * 0.05
                 data[i] = prev * 0.25
             }
-        case .silence:
+        case .silence, .realisticMom:
             for i in 0..<Int(frameCount) { data[i] = 0 }
         }
 

@@ -20,6 +20,8 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: RescueMe
+    resources:
+      - path: RescueMe/Resources/VoicePacks/Mom
     info:
       path: RescueMe/Info.plist
       properties:

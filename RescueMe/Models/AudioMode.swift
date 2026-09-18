@@ -4,6 +4,7 @@ enum AudioMode: String, Codable, CaseIterable, Identifiable {
     case silence = "Silence"
     case mumble = "Mumble"
     case ambient = "Ambient"
+    case realisticMom = "Realistic"
 
     var id: String { rawValue }
 
@@ -12,6 +13,7 @@ enum AudioMode: String, Codable, CaseIterable, Identifiable {
         case .silence: return "No audio"
         case .mumble: return "Distant voice murmur"
         case .ambient: return "Background noise"
+        case .realisticMom: return "Mom's voice with ambient"
         }
     }
 
@@ -20,6 +22,7 @@ enum AudioMode: String, Codable, CaseIterable, Identifiable {
         case .silence: return "speaker.slash.fill"
         case .mumble: return "waveform.and.person.filled"
         case .ambient: return "waveform"
+        case .realisticMom: return "person.wave.2.fill"
         }
     }
 }
