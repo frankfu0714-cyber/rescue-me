@@ -19,7 +19,12 @@ final class CallKitService: NSObject {
     var onDecline: (() -> Void)?
 
     private var provider: CXProvider
+    private let callController = CXCallController()
     private var activeCallUUID: UUID?
+
+    // True while a CXAnswerCallAction is in-flight from our in-app button,
+    // so the delegate knows not to re-trigger onAnswer and loop.
+    private var answeringFromApp = false
 
     private override init() {
         let config = CXProviderConfiguration()
@@ -33,6 +38,8 @@ final class CallKitService: NSObject {
     }
 
     func reportIncomingCall(from name: String) {
+        answeringFromApp = false   // reset for each new call
+
         let update = CXCallUpdate()
         update.remoteHandle = CXHandle(type: .generic, value: name)
         update.localizedCallerName = name
@@ -48,16 +55,35 @@ final class CallKitService: NSObject {
         provider.reportNewIncomingCall(with: uuid, update: update) { error in
             if let error {
                 print("[CallKit] reportNewIncomingCall failed: \(error.localizedDescription)")
-                // CallKit failed — our custom FakeIncomingCallView is already showing,
-                // so the user experience is unaffected.
             }
         }
     }
 
+    /// Called when the user answers via our in-app UI.
+    /// Requests CXAnswerCallAction so CallKit dismisses its banner and stops OS vibration.
+    func answerActiveCall() {
+        guard let uuid = activeCallUUID, !answeringFromApp else { return }
+        answeringFromApp = true
+        callController.request(CXTransaction(action: CXAnswerCallAction(call: uuid))) { [weak self] error in
+            if let error {
+                print("[CallKit] Answer request failed: \(error.localizedDescription)")
+                self?.answeringFromApp = false  // reset so the flag doesn't get stuck
+            }
+        }
+    }
+
+    /// Called when the call ends for any reason (user decline, end call, missed-call timer).
+    /// Requests CXEndCallAction so CallKit dismisses its UI and stops OS vibration.
     func endActiveCall() {
         guard let uuid = activeCallUUID else { return }
-        provider.reportCall(with: uuid, endedAt: Date(), reason: .remoteEnded)
-        activeCallUUID = nil
+        activeCallUUID = nil   // nil before the async request so re-entry is a no-op
+        callController.request(CXTransaction(action: CXEndCallAction(call: uuid))) { [weak self] error in
+            if let error {
+                print("[CallKit] End request failed: \(error.localizedDescription)")
+                // Fallback: report directly (handles already-ended call edge cases)
+                self?.provider.reportCall(with: uuid, endedAt: Date(), reason: .remoteEnded)
+            }
+        }
     }
 }
 
@@ -66,29 +92,28 @@ final class CallKitService: NSObject {
 extension CallKitService: CXProviderDelegate {
     func providerDidReset(_ provider: CXProvider) {
         activeCallUUID = nil
+        answeringFromApp = false
     }
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         action.fulfill()
-        onAnswer?()
+        if answeringFromApp {
+            // In-app answer: our answerCall() already ran; just clear the flag.
+            answeringFromApp = false
+        } else {
+            // Lock-screen answer: tell AppState to transition.
+            onAnswer?()
+        }
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         action.fulfill()
-        // Do NOT call onDecline() here. CallKit fires this action both when the
-        // user explicitly declines on the lock-screen AND when its internal ring
-        // timeout expires (~30 s on device, much sooner in Simulator). We cannot
-        // distinguish the two cases. AppState.missedCallTimer (45 s) handles
-        // auto-dismiss; the user's own Decline button calls endCall() directly.
-        //
-        // Side-effect: tapping "Decline" on the native lock-screen UI will
-        // dismiss the system call UI but our FakeIncomingCallView stays visible
-        // until the user taps Decline there or the 45 s timer fires.
-        // Acceptable trade-off for the prototype.
+        // Call onDecline for both lock-screen Decline and CallKit internal timeout.
+        // AppState.endCall() guards against double-end (callPhase != .idle check).
+        onDecline?()
     }
 
     func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
-        // CallKit activated the audio session — hand it to AudioService
         AudioService.shared.callKitActivated()
     }
 

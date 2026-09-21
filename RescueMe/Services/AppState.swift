@@ -154,8 +154,10 @@ final class AppState {
     }
 
     func answerCall() {
+        guard callPhase == .ringing else { return }
         missedCallTimer?.invalidate()
         missedCallTimer = nil
+        CallKitService.shared.answerActiveCall()  // dismiss CallKit banner + stop OS vibration
         AudioService.shared.stopRingtone()
         HapticsService.shared.stopCallVibration()
         AudioService.shared.startCallAudio(
@@ -167,6 +169,7 @@ final class AppState {
     }
 
     func endCall() {
+        guard callPhase != .idle else { return }  // prevent double-end from delegate loops
         missedCallTimer?.invalidate()
         missedCallTimer = nil
         CallKitService.shared.endActiveCall()
