@@ -26,17 +26,16 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         return true
     }
 
-    // Notification received while app is foregrounded — suppress system banner, trigger call directly
+    // App is foregrounded — countdown timer handles the call; just suppress the banner.
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        handleNotification(notification.request.content.userInfo)
-        completionHandler([])   // no banner — we show FakeIncomingCallView ourselves
+        completionHandler([])
     }
 
-    // User tapped notification (app was backgrounded/suspended)
+    // User tapped notification from background/lock-screen — trigger the call directly.
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
@@ -57,8 +56,9 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         let voiceLanguageRaw = userInfo["voiceLanguage"] as? String ?? VoiceLanguage.english.rawValue
 
         DispatchQueue.main.async {
-            // Guard against double-trigger (timer may have already fired if app stayed in foreground)
-            guard AppState.shared.callPhase == .idle else { return }
+            // Skip if call already started (foreground timer may have fired concurrently)
+            guard AppState.shared.callPhase != .ringing,
+                  AppState.shared.callPhase != .inCall else { return }
             AppState.shared.triggerCallFromNotification(
                 contactId: contactId,
                 audioModeRaw: audioModeRaw,

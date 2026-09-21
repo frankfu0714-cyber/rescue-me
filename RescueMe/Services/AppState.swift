@@ -14,18 +14,15 @@ final class AppState {
     var currentVoiceLanguage: VoiceLanguage = .english
     var countdownRemaining: TimeInterval = 0
 
-    // Settings (backed by UserDefaults directly)
-    var defaultAudioMode: AudioMode {
-        get { AudioMode(rawValue: UserDefaults.standard.string(forKey: "defaultAudioMode") ?? "") ?? .silence }
-        set { UserDefaults.standard.set(newValue.rawValue, forKey: "defaultAudioMode") }
+    // Settings — stored and observed so @Bindable works; persisted to UserDefaults via didSet
+    var defaultAudioMode: AudioMode = .silence {
+        didSet { UserDefaults.standard.set(defaultAudioMode.rawValue, forKey: "defaultAudioMode") }
     }
-    var vibrationEnabled: Bool {
-        get { UserDefaults.standard.object(forKey: "vibrationEnabled") as? Bool ?? true }
-        set { UserDefaults.standard.set(newValue, forKey: "vibrationEnabled") }
+    var vibrationEnabled: Bool = true {
+        didSet { UserDefaults.standard.set(vibrationEnabled, forKey: "vibrationEnabled") }
     }
-    var voiceLanguage: VoiceLanguage {
-        get { VoiceLanguage(rawValue: UserDefaults.standard.string(forKey: "voiceLanguage") ?? "") ?? .english }
-        set { UserDefaults.standard.set(newValue.rawValue, forKey: "voiceLanguage") }
+    var voiceLanguage: VoiceLanguage = .english {
+        didSet { UserDefaults.standard.set(voiceLanguage.rawValue, forKey: "voiceLanguage") }
     }
 
     // MARK: - Types
@@ -41,6 +38,13 @@ final class AppState {
     private let storageKey = "rescueme.contacts.v5"
 
     private init() {
+        // Load persisted settings before anything else
+        if let raw = UserDefaults.standard.string(forKey: "defaultAudioMode"),
+           let mode = AudioMode(rawValue: raw) { defaultAudioMode = mode }
+        if let b = UserDefaults.standard.object(forKey: "vibrationEnabled") as? Bool { vibrationEnabled = b }
+        if let raw = UserDefaults.standard.string(forKey: "voiceLanguage"),
+           let lang = VoiceLanguage(rawValue: raw) { voiceLanguage = lang }
+
         loadContacts()
         CallKitService.shared.onAnswer = { [weak self] in self?.answerCall() }
         CallKitService.shared.onDecline = { [weak self] in self?.endCall() }
@@ -139,6 +143,9 @@ final class AppState {
 
     func triggerCallFromNotification(contactId: UUID, audioModeRaw: String, voiceLanguageRaw: String) {
         guard let contact = contacts.first(where: { $0.id == contactId }) else { return }
+        // Cancel countdown timer so it can't double-fire if it was still running
+        countdownTimer?.invalidate()
+        countdownTimer = nil
         currentContact = contact
         currentAudioMode = AudioMode(rawValue: audioModeRaw) ?? contact.defaultAudioMode
         currentVoiceLanguage = VoiceLanguage(rawValue: voiceLanguageRaw) ?? voiceLanguage

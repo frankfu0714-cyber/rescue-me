@@ -104,6 +104,8 @@ struct ScheduleModalView: View {
                     )
                     .presentationDragIndicator(.visible)
             }
+            // Persist language choice as the new default so it survives modal close/reopen
+            .onChange(of: callVoiceLanguage) { appState.voiceLanguage = callVoiceLanguage }
         }
     }
 
