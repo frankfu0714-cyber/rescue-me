@@ -25,12 +25,13 @@ struct AddEditContactView: View {
     }
 
     private var isEditing: Bool { contact != nil }
+    private var hasCustomPhoto: Bool { previewImage != nil || existingPhotoFileName != nil }
 
     var body: some View {
         NavigationStack {
             Form {
                 avatarSection
-                presetAvatarSection
+                avatarPickerSection
                 infoSection
                 audioSection
             }
@@ -51,8 +52,7 @@ struct AddEditContactView: View {
                 if let data = try? await item.loadTransferable(type: Data.self),
                    let img = UIImage(data: data) {
                     previewImage = img
-                    // Custom photo overrides any preset selection
-                    selectedAssetName = nil
+                    selectedAssetName = nil  // custom photo overrides any preset
                 }
             }
         }
@@ -64,59 +64,40 @@ struct AddEditContactView: View {
         Section {
             HStack {
                 Spacer()
-                VStack(spacing: 12) {
-                    // Avatar preview — mirrors the ContactAvatarView fallback chain
-                    Group {
-                        if let img = previewImage {
-                            Image(uiImage: img)
-                                .resizable()
-                                .scaledToFill()
-                                .clipShape(Circle())
-                        } else if let fn = existingPhotoFileName,
-                                  let img = Contact(name: name, colorHex: selectedColor, photoFileName: fn).loadPhoto() {
-                            Image(uiImage: img)
-                                .resizable()
-                                .scaledToFill()
-                                .clipShape(Circle())
-                        } else if let assetName = selectedAssetName,
-                                  let img = UIImage(named: assetName) {
-                            Image(uiImage: img)
-                                .resizable()
-                                .scaledToFill()
-                                .clipShape(Circle())
-                        } else {
-                            ZStack {
-                                Circle().fill(Color(hex: selectedColor))
-                                if let emoji = contact?.emoji {
-                                    Text(emoji)
-                                        .font(.system(size: 50))
-                                } else {
-                                    Text(initials)
-                                        .font(.system(size: 36, weight: .semibold))
-                                        .foregroundStyle(.white)
-                                }
+                // Large preview — read-only; all actions are in avatarPickerSection below
+                Group {
+                    if let img = previewImage {
+                        Image(uiImage: img)
+                            .resizable()
+                            .scaledToFill()
+                            .clipShape(Circle())
+                    } else if let fn = existingPhotoFileName,
+                              let img = Contact(name: name, colorHex: selectedColor, photoFileName: fn).loadPhoto() {
+                        Image(uiImage: img)
+                            .resizable()
+                            .scaledToFill()
+                            .clipShape(Circle())
+                    } else if let assetName = selectedAssetName,
+                              let img = UIImage(named: assetName) {
+                        Image(uiImage: img)
+                            .resizable()
+                            .scaledToFill()
+                            .clipShape(Circle())
+                    } else {
+                        ZStack {
+                            Circle().fill(Color(hex: selectedColor))
+                            if let emoji = contact?.emoji {
+                                Text(emoji)
+                                    .font(.system(size: 50))
+                            } else {
+                                Text(initials)
+                                    .font(.system(size: 36, weight: .semibold))
+                                    .foregroundStyle(.white)
                             }
                         }
                     }
-                    .frame(width: 90, height: 90)
-
-                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                        let hasPhoto = previewImage != nil || existingPhotoFileName != nil || selectedAssetName != nil
-                        Text(hasPhoto ? "Change Photo" : "Add Photo")
-                            .font(.system(size: 14))
-                    }
-
-                    if previewImage != nil || existingPhotoFileName != nil {
-                        Button("Remove Photo", role: .destructive) {
-                            previewImage = nil
-                            existingPhotoFileName = nil
-                            selectedPhoto = nil
-                            // Restore preset asset (if contact originally had one)
-                            selectedAssetName = contact?.defaultAssetName
-                        }
-                        .font(.system(size: 13))
-                    }
                 }
+                .frame(width: 90, height: 90)
                 Spacer()
             }
             .listRowBackground(Color.clear)
@@ -124,54 +105,30 @@ struct AddEditContactView: View {
     }
 
     @ViewBuilder
-    private var presetAvatarSection: some View {
+    private var avatarPickerSection: some View {
         let variants = Contact.assetVariants(for: contact?.defaultAssetName)
-        if !variants.isEmpty {
-            Section("Pick a look") {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 14) {
-                        ForEach(variants, id: \.self) { assetName in
-                            presetThumbnail(assetName: assetName)
-                        }
-                    }
-                    .padding(.vertical, 6)
-                    .padding(.horizontal, 2)
-                }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func presetThumbnail(assetName: String) -> some View {
-        let isSelected = selectedAssetName == assetName && previewImage == nil && existingPhotoFileName == nil
-        Button {
-            selectedAssetName = assetName
-            // Auto-clear any custom photo so the preset shows immediately
-            previewImage = nil
-            existingPhotoFileName = nil
-            selectedPhoto = nil
-        } label: {
-            Group {
-                if let img = UIImage(named: assetName) {
-                    Image(uiImage: img)
-                        .resizable()
-                        .scaledToFill()
-                        .clipShape(Circle())
-                } else {
-                    Circle().fill(Color(.systemGray4))
-                }
-            }
-            .frame(width: 52, height: 52)
-            .overlay(
-                Circle()
-                    .strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 3)
+        Section {
+            AvatarVariantPicker(
+                variants: variants,
+                selectedAssetName: selectedAssetName,
+                hasCustomPhoto: hasCustomPhoto,
+                onSelectVariant: { assetName in
+                    selectedAssetName = assetName
+                    previewImage = nil
+                    existingPhotoFileName = nil
+                    selectedPhoto = nil
+                },
+                onRemoveCustomPhoto: {
+                    previewImage = nil
+                    existingPhotoFileName = nil
+                    selectedPhoto = nil
+                    // selectedAssetName already holds whatever preset was active
+                },
+                photoPickerItem: $selectedPhoto
             )
-            .shadow(color: .black.opacity(isSelected ? 0.18 : 0.06), radius: isSelected ? 4 : 2, y: 1)
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
         }
-        .buttonStyle(.plain)
-        .animation(.easeInOut(duration: 0.15), value: isSelected)
     }
 
     private var infoSection: some View {
@@ -228,7 +185,6 @@ struct AddEditContactView: View {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
 
-        // Handle photo persistence
         var photoFileName: String? = existingPhotoFileName
         if let img = previewImage {
             if let old = existingPhotoFileName { Contact.deletePhoto(filename: old) }

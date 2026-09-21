@@ -12,6 +12,7 @@ struct ScheduleModalView: View {
     @State private var customMinutes: Int = 5
     @State private var audioMode: AudioMode
     @State private var avatarPickerItem: PhotosPickerItem?
+    @State private var showAvatarPicker = false
 
     /// Always the freshest copy from appState so the avatar updates the moment
     /// a photo is saved (without needing to dismiss and reopen the sheet).
@@ -77,19 +78,28 @@ struct ScheduleModalView: View {
                     .tint(Theme.accent)
                 }
             }
-            // Handle photo picked from the avatar tap
+            // Photo picked from the avatar picker sheet
             .task(id: avatarPickerItem) {
                 guard let item = avatarPickerItem else { return }
-                avatarPickerItem = nil      // reset immediately so re-tapping works
+                avatarPickerItem = nil
                 guard
                     let data = try? await item.loadTransferable(type: Data.self),
                     let img = UIImage(data: data)
                 else { return }
-                // Fetch the freshest copy of the contact before mutating
                 var updated = appState.contacts.first(where: { $0.id == contact.id }) ?? contact
                 if let old = updated.photoFileName { Contact.deletePhoto(filename: old) }
                 updated.photoFileName = Contact.savePhoto(img)
+                updated.defaultAssetName = liveContact.defaultAssetName  // preserve current preset
                 appState.updateContact(updated)
+                showAvatarPicker = false
+            }
+            .sheet(isPresented: $showAvatarPicker) {
+                avatarPickerSheet
+                    .presentationDetents(
+                        Contact.assetVariants(for: liveContact.defaultAssetName).isEmpty
+                            ? [.height(160)] : [.height(260)]
+                    )
+                    .presentationDragIndicator(.visible)
             }
         }
     }
@@ -99,11 +109,10 @@ struct ScheduleModalView: View {
     private var callerSection: some View {
         Section {
             HStack(spacing: 14) {
-                // Tapping the avatar opens the photo picker inline
-                PhotosPicker(selection: $avatarPickerItem, matching: .images) {
+                Button { showAvatarPicker = true } label: {
                     ContactAvatarView(contact: liveContact, size: 52)
                         .overlay(alignment: .bottomTrailing) {
-                            Image(systemName: "camera.circle.fill")
+                            Image(systemName: "ellipsis.circle.fill")
                                 .font(.system(size: 16))
                                 .foregroundStyle(.white, Theme.accent)
                                 .offset(x: 3, y: 3)
@@ -165,6 +174,111 @@ struct ScheduleModalView: View {
                 Spacer()
             }
         }
+    }
+
+    // MARK: - Avatar picker sheet (immediate-save variant)
+
+    private var avatarPickerSheet: some View {
+        AvatarVariantPicker(
+            variants: Contact.assetVariants(for: liveContact.defaultAssetName),
+            selectedAssetName: liveContact.defaultAssetName,
+            hasCustomPhoto: liveContact.photoFileName != nil,
+            onSelectVariant: { assetName in
+                var updated = appState.contacts.first(where: { $0.id == contact.id }) ?? contact
+                if let old = updated.photoFileName { Contact.deletePhoto(filename: old) }
+                updated.photoFileName = nil
+                updated.defaultAssetName = assetName
+                appState.updateContact(updated)
+                showAvatarPicker = false
+            },
+            onRemoveCustomPhoto: {
+                var updated = appState.contacts.first(where: { $0.id == contact.id }) ?? contact
+                if let old = updated.photoFileName { Contact.deletePhoto(filename: old) }
+                updated.photoFileName = nil
+                appState.updateContact(updated)
+                showAvatarPicker = false
+            },
+            photoPickerItem: $avatarPickerItem
+        )
+    }
+}
+
+// MARK: - Reusable Avatar Variant Picker
+
+struct AvatarVariantPicker: View {
+    let variants: [String]
+    let selectedAssetName: String?
+    let hasCustomPhoto: Bool
+    let onSelectVariant: (String) -> Void
+    let onRemoveCustomPhoto: () -> Void
+    @Binding var photoPickerItem: PhotosPickerItem?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if !variants.isEmpty {
+                Text("Pick a look")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    .padding(.bottom, 12)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        ForEach(variants, id: \.self) { assetName in
+                            variantThumb(assetName)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                }
+                .padding(.bottom, 20)
+            }
+
+            Divider().padding(.leading, 20)
+
+            PhotosPicker(selection: $photoPickerItem, matching: .images) {
+                Label("Choose Custom Photo", systemImage: "photo.on.rectangle.angled")
+                    .foregroundStyle(.primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 20)
+                    .frame(height: 52)
+            }
+            .buttonStyle(.plain)
+
+            if hasCustomPhoto {
+                Divider().padding(.leading, 20)
+
+                Button(role: .destructive, action: onRemoveCustomPhoto) {
+                    Label("Remove Custom Photo", systemImage: "trash")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 20)
+                        .frame(height: 52)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func variantThumb(_ assetName: String) -> some View {
+        let isSelected = !hasCustomPhoto && selectedAssetName == assetName
+        Button { onSelectVariant(assetName) } label: {
+            Group {
+                if let img = UIImage(named: assetName) {
+                    Image(uiImage: img)
+                        .resizable()
+                        .scaledToFill()
+                        .clipShape(Circle())
+                } else {
+                    Circle().fill(Color(.systemGray4))
+                }
+            }
+            .frame(width: 60, height: 60)
+            .overlay(Circle().strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 3))
+            .shadow(color: .black.opacity(0.1), radius: isSelected ? 5 : 2, y: 1)
+        }
+        .buttonStyle(.plain)
+        .animation(.easeInOut(duration: 0.15), value: isSelected)
     }
 }
 
