@@ -11,6 +11,7 @@ final class AppState {
     var callPhase: CallPhase = .idle
     var currentContact: Contact?
     var currentAudioMode: AudioMode = .silence
+    var currentVoiceLanguage: VoiceLanguage = .english
     var countdownRemaining: TimeInterval = 0
 
     // Settings (backed by UserDefaults directly)
@@ -21,6 +22,10 @@ final class AppState {
     var vibrationEnabled: Bool {
         get { UserDefaults.standard.object(forKey: "vibrationEnabled") as? Bool ?? true }
         set { UserDefaults.standard.set(newValue, forKey: "vibrationEnabled") }
+    }
+    var voiceLanguage: VoiceLanguage {
+        get { VoiceLanguage(rawValue: UserDefaults.standard.string(forKey: "voiceLanguage") ?? "") ?? .english }
+        set { UserDefaults.standard.set(newValue.rawValue, forKey: "voiceLanguage") }
     }
 
     // MARK: - Types
@@ -33,7 +38,7 @@ final class AppState {
 
     private var countdownTimer: Timer?
     private var missedCallTimer: Timer?
-    private let storageKey = "rescueme.contacts.v4"
+    private let storageKey = "rescueme.contacts.v5"
 
     private init() {
         loadContacts()
@@ -80,14 +85,14 @@ final class AppState {
 
     // MARK: - Call Scheduling
 
-    func scheduleCall(contact: Contact, delay: TimeInterval, audioMode: AudioMode) {
+    func scheduleCall(contact: Contact, delay: TimeInterval, audioMode: AudioMode, voiceLanguage: VoiceLanguage? = nil) {
         cancelScheduled()
         currentContact = contact
         currentAudioMode = audioMode
+        currentVoiceLanguage = voiceLanguage ?? self.voiceLanguage
         countdownRemaining = delay
         callPhase = .countdown
 
-        // Foreground countdown
         var remaining = delay
         countdownTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
             guard let self else { return }
@@ -100,8 +105,12 @@ final class AppState {
             }
         }
 
-        // Background safety net via local notification
-        NotificationService.shared.schedule(contact: contact, audioMode: audioMode, delay: delay)
+        NotificationService.shared.schedule(
+            contact: contact,
+            audioMode: audioMode,
+            voiceLanguage: currentVoiceLanguage,
+            delay: delay
+        )
     }
 
     func cancelScheduled() {
@@ -117,29 +126,22 @@ final class AppState {
 
     func triggerCall() {
         guard let contact = currentContact else { return }
-
-        // PRIMARY: report to CallKit so lock-screen shows system call UI.
-        // Note: CallKit fires CXEndCallAction internally after ~30 s on device /
-        // much sooner in the Simulator. We do NOT wire that action to endCall()
-        // — instead our missedCallTimer (45 s) is the sole auto-dismiss path.
         CallKitService.shared.reportIncomingCall(from: contact.name)
-
-        // Show our custom UI (for foreground / unlocked case)
         callPhase = .ringing
         AudioService.shared.playRingtone()
         if vibrationEnabled { HapticsService.shared.startCallVibration() }
 
-        // Missed-call fallback: auto-dismiss after 45 s if user doesn't act
         missedCallTimer?.invalidate()
         missedCallTimer = Timer.scheduledTimer(withTimeInterval: 45, repeats: false) { [weak self] _ in
             self?.endCall()
         }
     }
 
-    func triggerCallFromNotification(contactId: UUID, audioModeRaw: String) {
+    func triggerCallFromNotification(contactId: UUID, audioModeRaw: String, voiceLanguageRaw: String) {
         guard let contact = contacts.first(where: { $0.id == contactId }) else { return }
         currentContact = contact
         currentAudioMode = AudioMode(rawValue: audioModeRaw) ?? contact.defaultAudioMode
+        currentVoiceLanguage = VoiceLanguage(rawValue: voiceLanguageRaw) ?? voiceLanguage
         NotificationService.shared.cancelAll()
         triggerCall()
     }
@@ -149,7 +151,11 @@ final class AppState {
         missedCallTimer = nil
         AudioService.shared.stopRingtone()
         HapticsService.shared.stopCallVibration()
-        AudioService.shared.startCallAudio(mode: currentAudioMode)
+        AudioService.shared.startCallAudio(
+            mode: currentAudioMode,
+            contact: currentContact,
+            language: currentVoiceLanguage
+        )
         callPhase = .inCall
     }
 

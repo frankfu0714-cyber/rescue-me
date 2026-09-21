@@ -54,11 +54,16 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         else { return }
 
         let audioModeRaw = userInfo["audioMode"] as? String ?? AudioMode.silence.rawValue
+        let voiceLanguageRaw = userInfo["voiceLanguage"] as? String ?? VoiceLanguage.english.rawValue
 
         DispatchQueue.main.async {
             // Guard against double-trigger (timer may have already fired if app stayed in foreground)
             guard AppState.shared.callPhase == .idle else { return }
-            AppState.shared.triggerCallFromNotification(contactId: contactId, audioModeRaw: audioModeRaw)
+            AppState.shared.triggerCallFromNotification(
+                contactId: contactId,
+                audioModeRaw: audioModeRaw,
+                voiceLanguageRaw: voiceLanguageRaw
+            )
         }
     }
 }

@@ -11,6 +11,7 @@ struct ScheduleModalView: View {
     @State private var selectedPreset: Preset = .thirtySeconds
     @State private var customMinutes: Int = 5
     @State private var audioMode: AudioMode
+    @State private var callVoiceLanguage: VoiceLanguage
     @State private var avatarPickerItem: PhotosPickerItem?
     @State private var showAvatarPicker = false
 
@@ -24,6 +25,7 @@ struct ScheduleModalView: View {
         self.contact = contact
         self._isPresented = isPresented
         self._audioMode = State(initialValue: contact.defaultAudioMode)
+        self._callVoiceLanguage = State(initialValue: AppState.shared.voiceLanguage)
     }
 
     enum Preset: String, CaseIterable, Identifiable {
@@ -70,7 +72,8 @@ struct ScheduleModalView: View {
                         appState.scheduleCall(
                             contact: liveContact,
                             delay: effectiveDelay,
-                            audioMode: audioMode
+                            audioMode: audioMode,
+                            voiceLanguage: callVoiceLanguage
                         )
                         isPresented = false
                     }
@@ -165,6 +168,17 @@ struct ScheduleModalView: View {
             .pickerStyle(.segmented)
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+
+            if audioMode == .realistic && liveContact.voicePack != nil {
+                Picker("Language", selection: $callVoiceLanguage) {
+                    ForEach(VoiceLanguage.allCases) { lang in
+                        Text(lang.rawValue).tag(lang)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0))
+            }
 
             HStack {
                 Spacer()

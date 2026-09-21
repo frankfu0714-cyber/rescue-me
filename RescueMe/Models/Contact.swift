@@ -8,11 +8,12 @@ struct Contact: Identifiable, Codable, Equatable {
     var defaultAudioMode: AudioMode = .silence
     var photoFileName: String?
     /// Preset emoji rendered large over the color circle — seeded contacts only.
-    /// Nil for user-added contacts, which fall back to initials.
     var emoji: String?
     /// Name of an xcassets image set used as the default avatar — seeded contacts only.
-    /// Falls back to emoji, then initials when nil.
     var defaultAssetName: String?
+    /// Folder name inside VoicePacks/ for "Realistic" mode (e.g. "Mom", "DrChen").
+    /// Nil for user-added contacts (Realistic plays nothing).
+    var voicePack: String?
 
     var initials: String {
         let parts = name.split(separator: " ")
@@ -21,9 +22,7 @@ struct Contact: Identifiable, Codable, Equatable {
         return result.isEmpty ? String(name.prefix(1)).uppercased() : result
     }
 
-    /// Returns all ethnic variant asset names for the given asset (e.g. "avatar-mom-asian"
-    /// → ["avatar-mom-asian", "avatar-mom-black", "avatar-mom-latino", "avatar-mom-white"]).
-    /// Returns empty when the asset has no variants (e.g. "avatar-unknown-shared").
+    /// Returns all ethnic variant asset names for the given asset name suffix.
     static func assetVariants(for assetName: String?) -> [String] {
         guard let assetName else { return [] }
         let ethnicities = ["asian", "black", "latino", "white"]
@@ -67,11 +66,11 @@ struct Contact: Identifiable, Codable, Equatable {
     ]
 
     static let defaults: [Contact] = [
-        Contact(name: "Mom",               colorHex: "#FF6B9D", emoji: "👩",    defaultAssetName: "avatar-mom-asian"),
-        Contact(name: "Dad",               colorHex: "#4A90E2", emoji: "👨",    defaultAssetName: "avatar-dad-black"),
-        Contact(name: "Boss",              colorHex: "#5C5C8A", emoji: "👨‍💼",  defaultAssetName: "avatar-boss-white"),
-        Contact(name: "Dr. Chen",          colorHex: "#26A69A", emoji: "👨‍⚕️", defaultAssetName: "avatar-dr-chen-asian"),
-        Contact(name: "Emergency Contact", colorHex: "#EF5350", emoji: "🚨",   defaultAssetName: "avatar-emergency-latino"),
-        Contact(name: "Unknown Number",    colorHex: "#78909C", emoji: "❓",    defaultAssetName: "avatar-unknown-shared"),
+        Contact(name: "Mom",               colorHex: "#FF6B9D", emoji: "👩",    defaultAssetName: "avatar-mom-asian",       voicePack: "Mom"),
+        Contact(name: "Dad",               colorHex: "#4A90E2", emoji: "👨",    defaultAssetName: "avatar-dad-black",       voicePack: "Dad"),
+        Contact(name: "Boss",              colorHex: "#5C5C8A", emoji: "👨‍💼",  defaultAssetName: "avatar-boss-white",      voicePack: "Boss"),
+        Contact(name: "Dr. Chen",          colorHex: "#26A69A", emoji: "👨‍⚕️", defaultAssetName: "avatar-dr-chen-asian",   voicePack: "DrChen"),
+        Contact(name: "Emergency Contact", colorHex: "#EF5350", emoji: "🚨",   defaultAssetName: "avatar-emergency-latino", voicePack: "Emergency"),
+        Contact(name: "Unknown Number",    colorHex: "#78909C", emoji: "❓",    defaultAssetName: "avatar-unknown-shared",  voicePack: "Unknown"),
     ]
 }

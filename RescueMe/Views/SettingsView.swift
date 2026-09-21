@@ -32,6 +32,13 @@ struct SettingsView: View {
             .pickerStyle(.menu)
 
             Toggle("Vibration", isOn: $state.vibrationEnabled)
+
+            Picker("Voice language", selection: $state.voiceLanguage) {
+                ForEach(VoiceLanguage.allCases) { lang in
+                    Text(lang.rawValue).tag(lang)
+                }
+            }
+            .pickerStyle(.segmented)
         }
     }
 

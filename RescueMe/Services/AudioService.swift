@@ -3,17 +3,14 @@ import AVFoundation
 final class AudioService {
     static let shared = AudioService()
 
-    // PCM engine — used for ringtone, mumble, ambient
+    // PCM engine — ringtone, mumble, ambient
     private var engine = AVAudioEngine()
     private var playerNode = AVAudioPlayerNode()
     private var callKitOwnsSession = false
 
-    // AVAudioPlayer stack — used for realisticMom (sequenced MP3 clips)
-    private var ambientPlayer: AVAudioPlayer?
+    // AVAudioPlayer stack — realistic voice packs (sequenced MP3 clips)
     private var voicePlayer: AVAudioPlayer?
     private var voiceSequenceTask: Task<Void, Never>?
-    private var shuffledClipIndices: [Int] = []
-    private var nextClipCursor = 0
 
     private init() {
         configureSession()
@@ -58,15 +55,17 @@ final class AudioService {
 
     // MARK: - Call Audio
 
-    func startCallAudio(mode: AudioMode) {
+    func startCallAudio(mode: AudioMode, contact: Contact?, language: VoiceLanguage) {
         stopAll()
         switch mode {
         case .silence:
             break
         case .mumble, .ambient:
             startEngine(buffer: makeNoiseBuffer(mode: mode))
-        case .realisticMom:
-            startRealisticMom()
+        case .realistic:
+            if let pack = contact?.voicePack {
+                startRealistic(pack: pack, language: language)
+            }
         }
     }
 
@@ -77,32 +76,37 @@ final class AudioService {
         voiceSequenceTask = nil
         voicePlayer?.stop()
         voicePlayer = nil
-        ambientPlayer?.stop()
-        ambientPlayer = nil
         playerNode.stop()
         engine.stop()
     }
 
-    // MARK: - Realistic Mom
+    // MARK: - Realistic Voice Pack
 
-    private func startRealisticMom() {
-        // Each mixed clip already contains ambient bed + voice + tail silence,
-        // so we play them back-to-back in shuffled order with a short gap between clips.
-        shuffledClipIndices = (1...5).shuffled()
-        nextClipCursor = 0
+    private func startRealistic(pack: String, language: VoiceLanguage) {
+        // Files live at VoicePacks/{Pack}/{en|zh}/{pack.lowercased()}_{01..05}.mp3
+        // The VoicePacks folder is bundled as a folder reference, preserving structure.
+        let subdirectory = "VoicePacks/\(pack)/\(language.folderName)"
+        let prefix = pack.lowercased()
+        var shuffled = (1...5).shuffled()
+        var cursor = 0
 
         voiceSequenceTask = Task { [weak self] in
             guard let self else { return }
             while !Task.isCancelled {
-                let clipIndex = self.shuffledClipIndices[self.nextClipCursor]
-                self.nextClipCursor = (self.nextClipCursor + 1) % self.shuffledClipIndices.count
-                // Re-shuffle once we exhaust the deck
-                if self.nextClipCursor == 0 {
-                    self.shuffledClipIndices = (1...5).shuffled()
+                let clipIndex = shuffled[cursor]
+                cursor += 1
+                if cursor >= shuffled.count {
+                    cursor = 0
+                    shuffled = (1...5).shuffled()
                 }
 
-                let name = String(format: "mom_%02d", clipIndex)
-                guard let url = Bundle.main.url(forResource: name, withExtension: "mp3") else {
+                let filename = String(format: "%@_%02d", prefix, clipIndex)
+                guard let url = Bundle.main.url(
+                    forResource: filename,
+                    withExtension: "mp3",
+                    subdirectory: subdirectory
+                ) else {
+                    // Missing file — short pause then try next
                     try? await Task.sleep(nanoseconds: 3_000_000_000)
                     continue
                 }
@@ -110,14 +114,11 @@ final class AudioService {
                 guard let player = try? AVAudioPlayer(contentsOf: url) else { continue }
                 player.volume = 1.0
                 player.prepareToPlay()
-
                 await MainActor.run { self.voicePlayer = player }
                 player.play()
 
-                // Wait for the clip to finish (duration is baked into the file)
                 let waitNs = UInt64(max(0, player.duration - 0.1) * 1_000_000_000)
                 try? await Task.sleep(nanoseconds: waitNs)
-
                 if Task.isCancelled { break }
             }
         }
@@ -155,7 +156,6 @@ final class AudioService {
 
         guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: totalFrames) else { return nil }
         buffer.frameLength = totalFrames
-
         let ringFrames = Int(sampleRate * ringDuration)
 
         for ch in 0..<2 {
@@ -210,7 +210,7 @@ final class AudioService {
                 prev = prev * 0.95 + w * 0.05
                 data[i] = prev * 0.25
             }
-        case .silence, .realisticMom:
+        case .silence, .realistic:
             for i in 0..<Int(frameCount) { data[i] = 0 }
         }
 

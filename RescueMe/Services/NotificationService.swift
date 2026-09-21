@@ -11,7 +11,7 @@ final class NotificationService {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
     }
 
-    func schedule(contact: Contact, audioMode: AudioMode, delay: TimeInterval) {
+    func schedule(contact: Contact, audioMode: AudioMode, voiceLanguage: VoiceLanguage, delay: TimeInterval) {
         let content = UNMutableNotificationContent()
         content.title = contact.name
         content.body = "Incoming call"
@@ -19,6 +19,7 @@ final class NotificationService {
         content.userInfo = [
             "contactId": contact.id.uuidString,
             "audioMode": audioMode.rawValue,
+            "voiceLanguage": voiceLanguage.rawValue,
             "action": "fakeCall",
         ]
         content.categoryIdentifier = categoryId
