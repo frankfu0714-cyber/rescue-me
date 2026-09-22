@@ -12,6 +12,10 @@ final class AudioService {
     private var voicePlayer: AVAudioPlayer?
     private var voiceSequenceTask: Task<Void, Never>?
 
+    // Deferred call audio: startCallAudio fires before CallKit activates the session,
+    // so we save the params and actually start in callKitActivated().
+    private var deferredCallAudio: (mode: AudioMode, contact: Contact?, language: VoiceLanguage)?
+
     private init() {
         configureSession()
     }
@@ -33,8 +37,12 @@ final class AudioService {
 
     func callKitActivated() {
         callKitOwnsSession = true
-        if engine.isRunning { return }
-        try? engine.start()
+        if let deferred = deferredCallAudio {
+            deferredCallAudio = nil
+            launchCallAudio(mode: deferred.mode, contact: deferred.contact, language: deferred.language)
+        } else if !engine.isRunning {
+            try? engine.start()
+        }
     }
 
     func callKitDeactivated() {
@@ -57,6 +65,16 @@ final class AudioService {
 
     func startCallAudio(mode: AudioMode, contact: Contact?, language: VoiceLanguage) {
         stopAll()
+        if callKitOwnsSession {
+            // Session already activated (e.g. second call in same session) — start immediately.
+            launchCallAudio(mode: mode, contact: contact, language: language)
+        } else {
+            // CallKit hasn't handed us the session yet. Store params and launch in callKitActivated().
+            deferredCallAudio = (mode, contact, language)
+        }
+    }
+
+    private func launchCallAudio(mode: AudioMode, contact: Contact?, language: VoiceLanguage) {
         switch mode {
         case .silence:
             break
@@ -72,6 +90,7 @@ final class AudioService {
     // MARK: - Stop
 
     func stopAll() {
+        deferredCallAudio = nil
         voiceSequenceTask?.cancel()
         voiceSequenceTask = nil
         voicePlayer?.stop()
@@ -85,8 +104,8 @@ final class AudioService {
     private func startRealistic(pack: String, language: VoiceLanguage) {
         // Use direct file-system URLs rather than Bundle.main.url(forResource:subdirectory:).
         // Bundle resource APIs do locale-matching on path components that look like ISO-639
-        // language codes (e.g. "zh", "en"), so the lookup fails for non-device locales.
-        // Folder references are raw files — constructing the path directly is correct here.
+        // language codes ("zh", "en"), which causes lookups to fail for non-matching device locales.
+        // Folder references are raw filesystem copies — direct path construction is correct here.
         let packDir = URL(fileURLWithPath: Bundle.main.bundlePath)
             .appendingPathComponent("VoicePacks")
             .appendingPathComponent(pack)
