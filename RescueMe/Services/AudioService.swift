@@ -83,9 +83,14 @@ final class AudioService {
     // MARK: - Realistic Voice Pack
 
     private func startRealistic(pack: String, language: VoiceLanguage) {
-        // Files live at VoicePacks/{Pack}/{en|zh}/{pack.lowercased()}_{01..05}.mp3
-        // The VoicePacks folder is bundled as a folder reference, preserving structure.
-        let subdirectory = "VoicePacks/\(pack)/\(language.folderName)"
+        // Use direct file-system URLs rather than Bundle.main.url(forResource:subdirectory:).
+        // Bundle resource APIs do locale-matching on path components that look like ISO-639
+        // language codes (e.g. "zh", "en"), so the lookup fails for non-device locales.
+        // Folder references are raw files — constructing the path directly is correct here.
+        let packDir = URL(fileURLWithPath: Bundle.main.bundlePath)
+            .appendingPathComponent("VoicePacks")
+            .appendingPathComponent(pack)
+            .appendingPathComponent(language.folderName)
         let prefix = pack.lowercased()
         var shuffled = (1...5).shuffled()
         var cursor = 0
@@ -101,24 +106,27 @@ final class AudioService {
                 }
 
                 let filename = String(format: "%@_%02d", prefix, clipIndex)
-                guard let url = Bundle.main.url(
-                    forResource: filename,
-                    withExtension: "mp3",
-                    subdirectory: subdirectory
-                ) else {
-                    // Missing file — short pause then try next
+                let url = packDir.appendingPathComponent(filename + ".mp3")
+
+                guard FileManager.default.fileExists(atPath: url.path) else {
+                    print("[Audio] Missing clip: \(url.path)")
                     try? await Task.sleep(nanoseconds: 3_000_000_000)
                     continue
                 }
 
-                guard let player = try? AVAudioPlayer(contentsOf: url) else { continue }
-                player.volume = 1.0
-                player.prepareToPlay()
-                await MainActor.run { self.voicePlayer = player }
-                player.play()
+                do {
+                    let player = try AVAudioPlayer(contentsOf: url)
+                    player.volume = 1.0
+                    player.prepareToPlay()
+                    await MainActor.run { self.voicePlayer = player }
+                    player.play()
+                    let waitNs = UInt64(max(0, player.duration - 0.1) * 1_000_000_000)
+                    try? await Task.sleep(nanoseconds: waitNs)
+                } catch {
+                    print("[Audio] AVAudioPlayer init failed for \(filename): \(error)")
+                    try? await Task.sleep(nanoseconds: 3_000_000_000)
+                }
 
-                let waitNs = UInt64(max(0, player.duration - 0.1) * 1_000_000_000)
-                try? await Task.sleep(nanoseconds: waitNs)
                 if Task.isCancelled { break }
             }
         }
