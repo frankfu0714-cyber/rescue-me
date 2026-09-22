@@ -24,7 +24,7 @@ struct ScheduleModalView: View {
     init(contact: Contact, isPresented: Binding<Bool>) {
         self.contact = contact
         self._isPresented = isPresented
-        self._audioMode = State(initialValue: contact.defaultAudioMode)
+        self._audioMode = State(initialValue: AppState.shared.defaultAudioMode)
         self._callVoiceLanguage = State(initialValue: AppState.shared.voiceLanguage)
     }
 
